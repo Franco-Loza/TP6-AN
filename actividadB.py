@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.linalg import solve_banded
 import matplotlib.pyplot as plt
-from models_soil_models import diffusivity_brooks_corey
 from boltzmann_edo import solve_boltzmann_edo
 
 
@@ -206,22 +205,3 @@ def graficar_comparacion_B(x_numeric, theta_numeric, x_boltzmann, theta_boltzman
     plt.tight_layout(rect=[0, 0, 1, 0.97])
     plt.savefig('actividadB_comparacion.png', dpi=300, bbox_inches='tight')
     plt.close()
-
-
-def analizar_frente_humedad(x, theta, threshold=0.01):
-    """Analiza la posición del frente de humedad."""
-    mask = theta > threshold
-    if np.any(mask):
-        frente_pos = x[mask][-1]
-        theta_max = np.max(theta)
-        mask_10 = theta > 0.1 * theta_max
-        mask_90 = theta > 0.9 * theta_max
-        if np.any(mask_10) and np.any(mask_90):
-            ancho_frente = x[mask_10][-1] - x[mask_90][0] if len(x[mask_10]) > 0 and len(x[mask_90]) > 0 else 0.0
-        else:
-            ancho_frente = 0.0
-    else:
-        frente_pos = 0.0
-        ancho_frente = 0.0
-
-    return frente_pos, ancho_frente

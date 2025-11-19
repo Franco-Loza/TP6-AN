@@ -1,4 +1,3 @@
-# actividadC.py
 import numpy as np
 from scipy.linalg import solve_banded
 import matplotlib.pyplot as plt
@@ -50,7 +49,6 @@ def resolucion_ecuacion_difusion_2D(D0, Lx, Ly, T_final, Nx, Ny, N):
     rx = D0 * dt / (2 * dx * dx)
     ry = D0 * dt / (2 * dy * dy)
 
-    # Matrices tridiagonales constantes (banded form para solve_banded)
     Ax_ab = np.zeros((3, Nx))
     Ax_ab[1, :] = 1 + 2 * rx
     Ax_ab[0, 1:] = -rx
@@ -64,30 +62,28 @@ def resolucion_ecuacion_difusion_2D(D0, Lx, Ly, T_final, Nx, Ny, N):
     # Bucle temporal
     theta_int = theta.copy()
     for _ in range(N):
-        # Paso 1: implícito en x (resolver para cada fila j)
+        # Paso 1: implícito en x
         theta_star = np.zeros_like(theta_int)
-        theta_star[0, :] = theta_int[0, :]  # Copia bordes (Dirichlet homogéneas)
+        theta_star[0, :] = theta_int[0, :]
         theta_star[-1, :] = theta_int[-1, :]
         
         for j in range(1, Ny + 1):
             b = np.zeros(Nx)
             for i_idx in range(Nx):
-                i = i_idx + 1  # índice real (1 a Nx)
+                i = i_idx + 1
                 b[i_idx] = (1 - 2 * ry) * theta_int[i, j] + ry * (theta_int[i, j - 1] + theta_int[i, j + 1])
-            # Resolver sistema tridiagonal: A_x * theta_star^{j} = b
             theta_star[1:Nx+1, j] = solve_banded((1, 1), Ax_ab, b)
 
-        # Paso 2: implícito en y (resolver para cada columna i)
+        # Paso 2: implícito en y
         theta_next = np.zeros_like(theta_int)
-        theta_next[:, 0] = theta_star[:, 0]  # Copia bordes
+        theta_next[:, 0] = theta_star[:, 0]
         theta_next[:, -1] = theta_star[:, -1]
         
         for i in range(1, Nx + 1):
             b = np.zeros(Ny)
             for j_idx in range(Ny):
-                j = j_idx + 1  # índice real (1 a Ny)
+                j = j_idx + 1
                 b[j_idx] = (1 - 2 * rx) * theta_star[i, j] + rx * (theta_star[i - 1, j] + theta_star[i + 1, j])
-            # Resolver sistema tridiagonal: A_y * theta_next^{i} = b
             theta_next[i, 1:Ny+1] = solve_banded((1, 1), Ay_ab, b)
 
         # Aplicar condiciones de borde Dirichlet homogéneas
@@ -97,7 +93,6 @@ def resolucion_ecuacion_difusion_2D(D0, Lx, Ly, T_final, Nx, Ny, N):
         theta_next[:, -1] = 0.0
         theta_int = theta_next.copy()
 
-    # Solución analítica y error
     theta_an = analytical_solution_2d(x, y, T_final, D0, Lx, Ly)
     dxdy = dx * dy
     error_L2 = np.sqrt(np.sum((theta_int - theta_an) ** 2) * dxdy)
